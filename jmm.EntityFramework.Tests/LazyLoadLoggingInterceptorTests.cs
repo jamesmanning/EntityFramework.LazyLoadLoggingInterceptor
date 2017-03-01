@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using Xunit;
@@ -54,24 +53,5 @@ namespace jmm.EntityFramework.Tests
                 Assert.Equal("SomeCustomerName", invoices[0].Customer.Name);
             }
         }
-    }
-    public class CustomerDbContext : DbContext
-    {
-        public DbSet<Invoice> Invoices { get; set; }
-        public DbSet<Customer> Customers { get; set; }
-    }
-    public class Customer
-    {
-        public int CustomerId { get; set; }
-        public string Name { get; set; }
-        public virtual ICollection<Invoice> Invoices { get; set; }
-    }
-    public class Invoice
-    {
-        public int InvoiceId { get; set; }
-        public string Number { get; set; }
-
-        public int CustomerId { get; set; }
-        public virtual Customer Customer { get; set; }
     }
 }
