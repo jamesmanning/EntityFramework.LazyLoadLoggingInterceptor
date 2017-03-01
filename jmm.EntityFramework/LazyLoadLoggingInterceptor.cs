@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Entity.Infrastructure.Interception;
 using System.Diagnostics;
@@ -12,9 +11,10 @@ namespace jmm.EntityFramework
 {
     public class LazyLoadLoggingInterceptor : DbCommandInterceptor
     {
-        private readonly LazyLoadRuntimes _lazyLoadRuntimes = new LazyLoadRuntimes();
         private readonly Timer _logTimer;
         private readonly bool _logDuringLazyLoad;
+
+        public LazyLoadRuntimes LazyLoadRuntimes { get; } = new LazyLoadRuntimes();
 
         // need separate ctors instead of using default parameter values since the type is
         // instantiated based on the number of parameters passed in the config file and
@@ -25,6 +25,9 @@ namespace jmm.EntityFramework
         // ReSharper disable once MemberCanBePrivate.Global - needs to be public since instantiated via reflection by EF
         public LazyLoadLoggingInterceptor(int logFrequencyInMilliseconds) : this(logFrequencyInMilliseconds, false) { } // default to not logging as they happen
 
+        public static LazyLoadLoggingInterceptor RegisteredInstance { get; private set; }
+        //private static LazyLoadLoggingInterceptor _registeredInstance;
+
 
         // ReSharper disable once MemberCanBePrivate.Global
         public LazyLoadLoggingInterceptor(int logFrequencyInMilliseconds, bool logDuringLazyLoad)
@@ -32,34 +35,45 @@ namespace jmm.EntityFramework
             _logDuringLazyLoad = logDuringLazyLoad;
             if (logFrequencyInMilliseconds > 0) // allow turning off with any non-positive value
             {
-                _logTimer = new Timer(_ => this.WriteTotals(), null, logFrequencyInMilliseconds, logFrequencyInMilliseconds);
+                _logTimer = new Timer(_ => this.WriteAndResetTotals(), null, logFrequencyInMilliseconds, logFrequencyInMilliseconds);
             }
-            DbInterception.Add(this);
-            RegisterWithEvents();
-            Trace.TraceInformation($"Registered interceptor {this.GetType().Name}");
+            if (RegisteredInstance == null)
+            {
+                DbInterception.Add(this);
+                RegisteredInstance = this;
+                RegisterWithEvents();
+                Trace.TraceInformation($"Registered interceptor {nameof(LazyLoadLoggingInterceptor)}");
+            }
         }
+
 
         private void RegisterWithEvents()
         {
             // register with anything that's going to stop the current appdomain/process/app pool/etc so we log any remaining stats
-            AppDomain.CurrentDomain.ProcessExit += (sender, args) => this.WriteTotals();
-            AppDomain.CurrentDomain.DomainUnload += (sender, args) => this.WriteTotals();
+            AppDomain.CurrentDomain.ProcessExit += (sender, args) => this.WriteAndResetTotals();
+            AppDomain.CurrentDomain.DomainUnload += (sender, args) => this.WriteAndResetTotals();
         }
 
-        private void WriteTotals()
+        private void WriteAndResetTotals()
         {
-            var sortedByTotalTime = _lazyLoadRuntimes
+            var sortedByTotalTime = this.LazyLoadRuntimes
                 .GetAndClearRuntimes()
                 .OrderByDescending(x => x.Value.Sum())
                 .ToArray();
             if (sortedByTotalTime.Any())
             {
-                Trace.TraceWarning($"{sortedByTotalTime.Length} locations discovered performing {sortedByTotalTime.Select(x => x.Value.Count()).Sum()} lazy loads for total of {sortedByTotalTime.Select(x => x.Value.Sum()).Sum()} ms");
+                var message = $"{sortedByTotalTime.Length} locations discovered performing {sortedByTotalTime.Select(x => x.Value.Count()).Sum()} lazy loads for total of {sortedByTotalTime.Select(x => x.Value.Sum()).Sum()} ms";
+                WriteMessage(message);
                 foreach (var entry in sortedByTotalTime)
                 {
                     Trace.TraceWarning($"{entry.Key} - happened {entry.Value.Count} times for a total of {entry.Value.Sum()} ms with average of {(int)entry.Value.Average()} ms");
                 }
             }
+        }
+
+        private static void WriteMessage(string message)
+        {
+            Trace.TraceWarning(message);
         }
 
         private void AddStopwatchToContext(DbCommandInterceptionContext<DbDataReader> interceptionContext, string locationDescription)
@@ -80,36 +94,6 @@ namespace jmm.EntityFramework
             public Stopwatch Stopwatch { get; set; }
         }
 
-        class LazyLoadRuntimes : Dictionary<string, List<long>>
-        {
-            // we could use concurrent collections and avoid locking, but we're
-            // unlikely to have contention and it's only locking small/fast code
-            private readonly object _lock = new object();
-            public List<long> AddEntry(string location, long runTimeInMilliseconds)
-            {
-                lock (_lock)
-                {
-                    List<long> listForLocation;
-                    if (this.TryGetValue(location, out listForLocation) == false)
-                    {
-                        listForLocation = new List<long>();
-                        Add(location, listForLocation);
-                    }
-                    listForLocation.Add(runTimeInMilliseconds);
-                    return listForLocation;
-                }
-            }
-
-            public KeyValuePair<string, List<long>>[] GetAndClearRuntimes()
-            {
-                lock (_lock)
-                {
-                    var runtimes = this.ToArray();
-                    this.Clear();
-                    return runtimes;
-                }
-            }
-        }
         public override void ReaderExecuting(DbCommand command, DbCommandInterceptionContext<DbDataReader> interceptionContext)
         {
             // unfortunately not a better way to detect whether the load is lazy or explicit via interceptor
@@ -143,7 +127,7 @@ namespace jmm.EntityFramework
             if (inFlightStopwatch != null)
             {
                 inFlightStopwatch.Stopwatch.Stop();
-                var runtimesList = _lazyLoadRuntimes.AddEntry(inFlightStopwatch.LocationDescription, inFlightStopwatch.Stopwatch.ElapsedMilliseconds);
+                var runtimesList = this.LazyLoadRuntimes.AddEntry(inFlightStopwatch.LocationDescription, inFlightStopwatch.Stopwatch.ElapsedMilliseconds);
 
                 if (_logDuringLazyLoad)
                 {
