@@ -28,8 +28,16 @@ namespace jmm.EntityFramework.Tests
                 {
                     new Invoice()
                     {
-                        Number = "SomeInvoiceNumber",
-                    }
+                        Number = "SomeInvoiceNumber1",
+                    },
+                    new Invoice()
+                    {
+                        Number = "SomeInvoiceNumber2",
+                    },
+                    new Invoice()
+                    {
+                        Number = "SomeInvoiceNumber3",
+                    },
                 },
             };
             // have the database start out with some test data
@@ -53,24 +61,29 @@ namespace jmm.EntityFramework.Tests
             {
                 var invoices = db.Invoices.ToList();
                 Assert.NotNull(invoices);
-                Assert.AreEqual(1, invoices.Count);
-                var queriedInvoice = invoices[0];
-                Assert.AreEqual("SomeInvoiceNumber", queriedInvoice.Number);
-                Assert.AreEqual(1, queriedInvoice.InvoiceId);
-                Assert.AreEqual(1, queriedInvoice.CustomerId);
+                Assert.AreEqual(3, invoices.Count);
+                for (int i = 0; i < invoices.Count; i++)
+                {
+                    var queriedInvoice = invoices.ElementAt(i);
+                    Assert.AreEqual(1, queriedInvoice.CustomerId);
+                    Assert.AreEqual(i + 1, queriedInvoice.InvoiceId);
+                    Assert.AreEqual($"SomeInvoiceNumber{i + 1}", queriedInvoice.Number);
+                }
 
                 // lazy load via navigation entity reference
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
-                var lazyLoadedCustomer = queriedInvoice.Customer;
+                for (int i = 0; i < invoices.Count; i++)
+                {
+                    var queriedInvoice = invoices.ElementAt(i);
+                    var lazyLoadedCustomer = queriedInvoice.Customer;
+                    Assert.AreEqual(1, lazyLoadedCustomer.CustomerId);
+                    Assert.AreEqual("SomeCustomerName", lazyLoadedCustomer.Name);
+                }
                 Assert.AreEqual(1, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
                 var lazyLoadEntryForCustomerProperty = this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Single();
                 StringAssert.Contains("lazy load detected accessing navigation property Customer from entity Invoice", lazyLoadEntryForCustomerProperty.Key);
                 Assert.AreEqual(1, lazyLoadEntryForCustomerProperty.Value.Count);
                 Assert.True(lazyLoadEntryForCustomerProperty.Value.Single() >= 0); // should be a valid runtime in milliseconds
-
-                Assert.NotNull(lazyLoadedCustomer);
-                Assert.AreEqual(1, lazyLoadedCustomer.CustomerId);
-                Assert.AreEqual("SomeCustomerName", lazyLoadedCustomer.Name);
             }
         }
 
@@ -95,11 +108,14 @@ namespace jmm.EntityFramework.Tests
                 var lazyLoadRuntimeInMilliseconds = lazyLoadEntryForInvoicesProperty.Value.Single();
                 Assert.True(lazyLoadRuntimeInMilliseconds >= 0);
 
-                Assert.AreEqual(1, queriedCustomer.Invoices.Count);
-                var lazyLoadedInvoice = queriedCustomer.Invoices.Single();
-                Assert.AreEqual(1, lazyLoadedInvoice.CustomerId);
-                Assert.AreEqual(1, lazyLoadedInvoice.InvoiceId);
-                Assert.AreEqual("SomeInvoiceNumber", lazyLoadedInvoice.Number);
+                Assert.AreEqual(3, queriedCustomer.Invoices.Count);
+                for (int i = 0; i < queriedCustomer.Invoices.Count; i++)
+                {
+                    var lazyLoadedInvoice = queriedCustomer.Invoices.ElementAt(i);
+                    Assert.AreEqual(1, lazyLoadedInvoice.CustomerId);
+                    Assert.AreEqual(i + 1, lazyLoadedInvoice.InvoiceId);
+                    Assert.AreEqual($"SomeInvoiceNumber{i + 1}", lazyLoadedInvoice.Number);
+                }
             }
         }
 
@@ -112,20 +128,25 @@ namespace jmm.EntityFramework.Tests
                     .Include(x => x.Customer)
                     .ToList();
                 Assert.NotNull(invoices);
-                Assert.AreEqual(1, invoices.Count);
-                var queriedInvoice = invoices[0];
-                Assert.AreEqual("SomeInvoiceNumber", queriedInvoice.Number);
-                Assert.AreEqual(1, queriedInvoice.InvoiceId);
-                Assert.AreEqual(1, queriedInvoice.CustomerId);
+                Assert.AreEqual(3, invoices.Count);
+                for (int i = 0; i < invoices.Count; i++)
+                {
+                    var queriedInvoice = invoices.ElementAt(i);
+                    Assert.AreEqual(1, queriedInvoice.CustomerId);
+                    Assert.AreEqual(i + 1, queriedInvoice.InvoiceId);
+                    Assert.AreEqual($"SomeInvoiceNumber{i + 1}", queriedInvoice.Number);
+                }
 
                 // navigation entity reference was eager loaded at query time
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
-                var eagerLoadedCustomer = queriedInvoice.Customer;
+                foreach (var queriedInvoice in invoices)
+                {
+                    Assert.NotNull(queriedInvoice.Customer);
+                    var eagerLoadedCustomer = queriedInvoice.Customer;
+                    Assert.AreEqual(1, eagerLoadedCustomer.CustomerId);
+                    Assert.AreEqual("SomeCustomerName", eagerLoadedCustomer.Name);
+                }
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
-
-                Assert.NotNull(eagerLoadedCustomer);
-                Assert.AreEqual(1, eagerLoadedCustomer.CustomerId);
-                Assert.AreEqual("SomeCustomerName", eagerLoadedCustomer.Name);
             }
         }
         [Test]
@@ -146,11 +167,14 @@ namespace jmm.EntityFramework.Tests
                 Assert.NotNull(queriedCustomer.Invoices);
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
 
-                Assert.AreEqual(1, queriedCustomer.Invoices.Count);
-                var eagerLoadedInvoice = queriedCustomer.Invoices.Single();
-                Assert.AreEqual(1, eagerLoadedInvoice.CustomerId);
-                Assert.AreEqual(1, eagerLoadedInvoice.InvoiceId);
-                Assert.AreEqual("SomeInvoiceNumber", eagerLoadedInvoice.Number);
+                Assert.AreEqual(3, queriedCustomer.Invoices.Count);
+                for (int i = 0; i < queriedCustomer.Invoices.Count; i++)
+                {
+                    var eagerLoadedInvoice = queriedCustomer.Invoices.ElementAt(i);
+                    Assert.AreEqual(1, eagerLoadedInvoice.CustomerId);
+                    Assert.AreEqual(i+1, eagerLoadedInvoice.InvoiceId);
+                    Assert.AreEqual($"SomeInvoiceNumber{i+1}", eagerLoadedInvoice.Number);
+                }
             }
         }
 
@@ -161,21 +185,26 @@ namespace jmm.EntityFramework.Tests
             {
                 var invoices = db.Invoices.ToList();
                 Assert.NotNull(invoices);
-                Assert.AreEqual(1, invoices.Count);
-                var queriedInvoice = invoices[0];
-                Assert.AreEqual("SomeInvoiceNumber", queriedInvoice.Number);
-                Assert.AreEqual(1, queriedInvoice.InvoiceId);
-                Assert.AreEqual(1, queriedInvoice.CustomerId);
+                Assert.AreEqual(3, invoices.Count);
+                for (int i = 0; i < invoices.Count; i++)
+                {
+                    var queriedInvoice = invoices.ElementAt(i);
+                    Assert.AreEqual(1, queriedInvoice.CustomerId);
+                    Assert.AreEqual(i + 1, queriedInvoice.InvoiceId);
+                    Assert.AreEqual($"SomeInvoiceNumber{i + 1}", queriedInvoice.Number);
+                }
 
                 // explicit load before referencing navigation entity reference
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
-                db.Entry(queriedInvoice).Reference(x => x.Customer).Load();
-                var explicitLoadedCustomer = queriedInvoice.Customer;
+                foreach (var queriedInvoice in invoices)
+                {
+                    db.Entry(queriedInvoice).Reference(x => x.Customer).Load();
+                    var explicitLoadedCustomer = queriedInvoice.Customer;
+                    Assert.NotNull(explicitLoadedCustomer);
+                    Assert.AreEqual(1, explicitLoadedCustomer.CustomerId);
+                    Assert.AreEqual("SomeCustomerName", explicitLoadedCustomer.Name);
+                }
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
-
-                Assert.NotNull(explicitLoadedCustomer);
-                Assert.AreEqual(1, explicitLoadedCustomer.CustomerId);
-                Assert.AreEqual("SomeCustomerName", explicitLoadedCustomer.Name);
             }
         }
         [Test]
@@ -195,11 +224,14 @@ namespace jmm.EntityFramework.Tests
                 Assert.NotNull(queriedCustomer.Invoices);
                 Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
 
-                Assert.AreEqual(1, queriedCustomer.Invoices.Count);
-                var eagerLoadedInvoice = queriedCustomer.Invoices.Single();
-                Assert.AreEqual(1, eagerLoadedInvoice.CustomerId);
-                Assert.AreEqual(1, eagerLoadedInvoice.InvoiceId);
-                Assert.AreEqual("SomeInvoiceNumber", eagerLoadedInvoice.Number);
+                Assert.AreEqual(3, queriedCustomer.Invoices.Count);
+                for (int i = 0; i < queriedCustomer.Invoices.Count; i++)
+                {
+                    var explicitLoadedInvoice = queriedCustomer.Invoices.ElementAt(i);
+                    Assert.AreEqual(1, explicitLoadedInvoice.CustomerId);
+                    Assert.AreEqual(i + 1, explicitLoadedInvoice.InvoiceId);
+                    Assert.AreEqual($"SomeInvoiceNumber{i + 1}", explicitLoadedInvoice.Number);
+                }
             }
         }
     }
