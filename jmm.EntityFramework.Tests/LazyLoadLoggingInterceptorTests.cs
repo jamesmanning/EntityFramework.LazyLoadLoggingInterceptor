@@ -117,32 +117,6 @@ namespace jmm.EntityFramework.Tests
                 Assert.Equal(1, lazyLoadedInvoice.InvoiceId);
                 Assert.Equal("SomeInvoiceNumber", lazyLoadedInvoice.Number);
             }
-
-            using (var db = new CustomerDbContext())
-            {
-                var invoices = db.Invoices.ToList();
-                Assert.NotNull(invoices);
-                Assert.Equal(1, invoices.Count);
-                var queriedInvoice = invoices[0];
-                Assert.Equal("SomeInvoiceNumber", queriedInvoice.Number);
-
-                Assert.Equal(1, queriedInvoice.InvoiceId);
-                Assert.Equal(1, queriedInvoice.CustomerId);
-
-                // lazy load via navigation entity reference
-                Assert.Equal(1, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count); // confirm lazy load done with previous (now disposed) context is still in the list of runtimes
-                this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Clear(); // we don't need to keep around the previous lazy-load entry, just makes the rest of this test uglier
-                var lazyLoadedCustomer = queriedInvoice.Customer;
-                Assert.NotNull(lazyLoadedCustomer);
-                Assert.Equal(1, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
-                var lazyLoadEntryForCustomerProperty = this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Single();
-                Assert.Contains("lazy load detected accessing navigation property Customer from entity Invoice", lazyLoadEntryForCustomerProperty.Key);
-                Assert.Equal(1, lazyLoadEntryForCustomerProperty.Value.Count);
-                Assert.True(lazyLoadEntryForCustomerProperty.Value.Single() >= 0); // should be a valid runtime in milliseconds
-
-                Assert.Equal(1, lazyLoadedCustomer.CustomerId);
-                Assert.Equal("SomeCustomerName", lazyLoadedCustomer.Name);
-            }
         }
     }
 }
