@@ -102,5 +102,105 @@ namespace jmm.EntityFramework.Tests
                 Assert.AreEqual("SomeInvoiceNumber", lazyLoadedInvoice.Number);
             }
         }
+
+        [Test]
+        public void EagerLoadOfNavigationPropertyReferenceIsTracked()
+        {
+            using (var db = new CustomerDbContext())
+            {
+                var invoices = db.Invoices
+                    .Include(x => x.Customer)
+                    .ToList();
+                Assert.NotNull(invoices);
+                Assert.AreEqual(1, invoices.Count);
+                var queriedInvoice = invoices[0];
+                Assert.AreEqual("SomeInvoiceNumber", queriedInvoice.Number);
+                Assert.AreEqual(1, queriedInvoice.InvoiceId);
+                Assert.AreEqual(1, queriedInvoice.CustomerId);
+
+                // navigation entity reference was eager loaded at query time
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                var eagerLoadedCustomer = queriedInvoice.Customer;
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+
+                Assert.NotNull(eagerLoadedCustomer);
+                Assert.AreEqual(1, eagerLoadedCustomer.CustomerId);
+                Assert.AreEqual("SomeCustomerName", eagerLoadedCustomer.Name);
+            }
+        }
+        [Test]
+        public void EagerLoadOfNavigationPropertyCollectionIsNotTracked()
+        {
+            using (var db = new CustomerDbContext())
+            {
+                var customers = db.Customers
+                    .Include(x => x.Invoices)
+                    .ToList();
+                Assert.NotNull(customers);
+                Assert.AreEqual(1, customers.Count);
+                var queriedCustomer = customers[0];
+                Assert.AreEqual("SomeCustomerName", queriedCustomer.Name);
+
+                // navigation entity collection was eager loaded at query time
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                Assert.NotNull(queriedCustomer.Invoices);
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+
+                Assert.AreEqual(1, queriedCustomer.Invoices.Count);
+                var eagerLoadedInvoice = queriedCustomer.Invoices.Single();
+                Assert.AreEqual(1, eagerLoadedInvoice.CustomerId);
+                Assert.AreEqual(1, eagerLoadedInvoice.InvoiceId);
+                Assert.AreEqual("SomeInvoiceNumber", eagerLoadedInvoice.Number);
+            }
+        }
+
+        [Test]
+        public void ExplicitLoadOfNavigationPropertyReferenceIsTracked()
+        {
+            using (var db = new CustomerDbContext())
+            {
+                var invoices = db.Invoices.ToList();
+                Assert.NotNull(invoices);
+                Assert.AreEqual(1, invoices.Count);
+                var queriedInvoice = invoices[0];
+                Assert.AreEqual("SomeInvoiceNumber", queriedInvoice.Number);
+                Assert.AreEqual(1, queriedInvoice.InvoiceId);
+                Assert.AreEqual(1, queriedInvoice.CustomerId);
+
+                // explicit load before referencing navigation entity reference
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                db.Entry(queriedInvoice).Reference(x => x.Customer).Load();
+                var explicitLoadedCustomer = queriedInvoice.Customer;
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+
+                Assert.NotNull(explicitLoadedCustomer);
+                Assert.AreEqual(1, explicitLoadedCustomer.CustomerId);
+                Assert.AreEqual("SomeCustomerName", explicitLoadedCustomer.Name);
+            }
+        }
+        [Test]
+        public void ExplicitLoadOfNavigationPropertyCollectionIsNotTracked()
+        {
+            using (var db = new CustomerDbContext())
+            {
+                var customers = db.Customers.ToList();
+                Assert.NotNull(customers);
+                Assert.AreEqual(1, customers.Count);
+                var queriedCustomer = customers[0];
+                Assert.AreEqual("SomeCustomerName", queriedCustomer.Name);
+
+                // explicit load before referencing navigation entity collection
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                db.Entry(queriedCustomer).Collection(x => x.Invoices).Load();
+                Assert.NotNull(queriedCustomer.Invoices);
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+
+                Assert.AreEqual(1, queriedCustomer.Invoices.Count);
+                var eagerLoadedInvoice = queriedCustomer.Invoices.Single();
+                Assert.AreEqual(1, eagerLoadedInvoice.CustomerId);
+                Assert.AreEqual(1, eagerLoadedInvoice.InvoiceId);
+                Assert.AreEqual("SomeInvoiceNumber", eagerLoadedInvoice.Number);
+            }
+        }
     }
 }
