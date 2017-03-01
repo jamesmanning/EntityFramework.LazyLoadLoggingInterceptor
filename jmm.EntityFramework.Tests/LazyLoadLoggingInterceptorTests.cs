@@ -12,8 +12,6 @@ namespace jmm.EntityFramework.Tests
     {
         public LazyLoadLoggingInterceptorTests()
         {
-            Database.SetInitializer(new DropCreateDatabaseAlways<CustomerDbContext>());
-
             // start each test with a clean database
             using (var dataContext = new CustomerDbContext())
             {
