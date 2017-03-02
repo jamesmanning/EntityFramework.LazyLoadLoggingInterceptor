@@ -1,4 +1,6 @@
-﻿namespace jmm.EntityFramework.Tests
+﻿using System.Collections.Generic;
+
+namespace jmm.EntityFramework.Tests
 {
     public class Invoice
     {
@@ -7,5 +9,6 @@
 
         public int CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
+        public virtual ICollection<InvoiceLineItem> InvoiceLineItems { get; set; }
     }
 }

@@ -29,14 +29,32 @@ namespace jmm.EntityFramework.Tests
                     new Invoice()
                     {
                         Number = "SomeInvoiceNumber1",
+                        InvoiceLineItems = new List<InvoiceLineItem>()
+                        {
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem1-SomeInvoiceNumber1" },
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem2-SomeInvoiceNumber1" },
+                        }
                     },
                     new Invoice()
                     {
                         Number = "SomeInvoiceNumber2",
+                        InvoiceLineItems = new List<InvoiceLineItem>()
+                        {
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem1-SomeInvoiceNumber2" },
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem2-SomeInvoiceNumber2" },
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem3-SomeInvoiceNumber2" },
+                        }
                     },
                     new Invoice()
                     {
                         Number = "SomeInvoiceNumber3",
+                        InvoiceLineItems = new List<InvoiceLineItem>()
+                        {
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem1-SomeInvoiceNumber3" },
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem2-SomeInvoiceNumber3" },
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem3-SomeInvoiceNumber3" },
+                            new InvoiceLineItem() { Description = "SomeInvoiceLineItem4-SomeInvoiceNumber3" },
+                        }
                     },
                 },
             };
@@ -47,9 +65,14 @@ namespace jmm.EntityFramework.Tests
                 db.SaveChanges();
             }
 
-
             // start each test with no previous load runtimes
             this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Clear();
+        }
+
+        [TearDown]
+        public void AfterEachTest()
+        {
+            this.LazyLoadLoggingInterceptor.Dispose();
         }
 
         private LazyLoadLoggingInterceptor LazyLoadLoggingInterceptor => LazyLoadLoggingInterceptor.RegisteredInstance ?? new LazyLoadLoggingInterceptor(0, false);
@@ -115,6 +138,48 @@ namespace jmm.EntityFramework.Tests
                     Assert.AreEqual(1, lazyLoadedInvoice.CustomerId);
                     Assert.AreEqual(i + 1, lazyLoadedInvoice.InvoiceId);
                     Assert.AreEqual($"SomeInvoiceNumber{i + 1}", lazyLoadedInvoice.Number);
+                }
+            }
+        }
+
+        [Test]
+        public void LazyLoadsOfNPlus1SelectsAreTracked()
+        {
+            using (var db = new CustomerDbContext())
+            {
+                var customers = db.Customers.ToList();
+                Assert.NotNull(customers);
+                Assert.AreEqual(1, customers.Count);
+                var queriedCustomer = customers[0];
+                Assert.AreEqual("SomeCustomerName", queriedCustomer.Name);
+
+                // lazy load via navigation entity collection
+                Assert.AreEqual(0, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                Assert.NotNull(queriedCustomer.Invoices);
+                Assert.AreEqual(1, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                var lazyLoadEntryForInvoicesProperty = this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Single();
+                StringAssert.Contains("lazy load detected accessing navigation property Invoices from entity Customer", lazyLoadEntryForInvoicesProperty.Key);
+                Assert.AreEqual(1, lazyLoadEntryForInvoicesProperty.Value.Count);
+                var lazyLoadRuntimeInMilliseconds = lazyLoadEntryForInvoicesProperty.Value.Single();
+                Assert.True(lazyLoadRuntimeInMilliseconds >= 0);
+                // get rid of this lazy-load entry to make the N+1 asserts below simpler
+                this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Clear();
+
+                for (int invoiceIndex = 0; invoiceIndex < queriedCustomer.Invoices.Count; invoiceIndex++)
+                {
+                    var invoice = queriedCustomer.Invoices.ElementAt(invoiceIndex);
+
+                    // no lazy load before accessing the InvoiceLineItems under this invoice
+                    for (int lineItemIndex = 0; lineItemIndex < invoice.InvoiceLineItems.Count; lineItemIndex++)
+                    {
+                        var invoiceLineItem = invoice.InvoiceLineItems.ElementAt(lineItemIndex);
+
+                        Assert.AreEqual($"SomeInvoiceLineItem{lineItemIndex + 1}-{invoice.Number}", invoiceLineItem.Description);
+                    }
+                    // The one lazy load entry should have incremented with the lazy-load of the line items
+                    Assert.AreEqual(1, this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Count);
+                    var lazyLoadEntryForLineItemsProperty = this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Single();
+                    Assert.AreEqual(invoiceIndex+1, lazyLoadEntryForLineItemsProperty.Value.Count);
                 }
             }
         }
