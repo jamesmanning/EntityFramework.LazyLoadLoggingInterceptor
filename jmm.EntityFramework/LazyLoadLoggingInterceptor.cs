@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace jmm.EntityFramework
 {
-    public class LazyLoadLoggingInterceptor : DbCommandInterceptor
+    public class LazyLoadLoggingInterceptor : DbCommandInterceptor, IDisposable
     {
         private readonly Timer _logTimer;
         private readonly bool _logDuringLazyLoad;
@@ -30,6 +30,7 @@ namespace jmm.EntityFramework
 
 
         // ReSharper disable once MemberCanBePrivate.Global
+
         public LazyLoadLoggingInterceptor(int logFrequencyInMilliseconds, bool logDuringLazyLoad)
         {
             _logDuringLazyLoad = logDuringLazyLoad;
@@ -39,20 +40,40 @@ namespace jmm.EntityFramework
             }
             if (RegisteredInstance == null)
             {
-                DbInterception.Add(this);
                 RegisteredInstance = this;
-                RegisterWithEvents();
+                DbInterception.Add(this);
+                RegisterAppDomainEvents();
                 Trace.TraceInformation($"Registered interceptor {nameof(LazyLoadLoggingInterceptor)}");
             }
         }
 
+        public void Dispose()
+        {
+            if (RegisteredInstance == this)
+            {
+                RegisteredInstance = null;
+                DbInterception.Remove(this);
+                UnregisterAppDomainEvents();
+                _logTimer?.Dispose();
+                Trace.TraceInformation($"Unregistered interceptor {nameof(LazyLoadLoggingInterceptor)}");
+            }
+        }
 
-        private void RegisterWithEvents()
+        private void RegisterAppDomainEvents()
         {
             // register with anything that's going to stop the current appdomain/process/app pool/etc so we log any remaining stats
-            AppDomain.CurrentDomain.ProcessExit += (sender, args) => this.WriteAndResetTotals();
-            AppDomain.CurrentDomain.DomainUnload += (sender, args) => this.WriteAndResetTotals();
+            AppDomain.CurrentDomain.ProcessExit += WriteAndResetTotalsEventHandler;
+            AppDomain.CurrentDomain.DomainUnload += WriteAndResetTotalsEventHandler;
         }
+
+        private void UnregisterAppDomainEvents()
+        {
+            // register with anything that's going to stop the current appdomain/process/app pool/etc so we log any remaining stats
+            AppDomain.CurrentDomain.ProcessExit -= WriteAndResetTotalsEventHandler;
+            AppDomain.CurrentDomain.DomainUnload -= WriteAndResetTotalsEventHandler;
+        }
+
+        private void WriteAndResetTotalsEventHandler(object sender, EventArgs args) => this.WriteAndResetTotals();
 
         private void WriteAndResetTotals()
         {
