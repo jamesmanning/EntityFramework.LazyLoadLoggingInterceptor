@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jmm.EntityFramework", "jmm.EntityFramework\jmm.EntityFramework.csproj", "{39A9B613-9FFB-46D6-8E70-148E1E266B2B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityFramework.LazyLoadLoggingInterceptor", "EntityFramework.LazyLoadLoggingInterceptor\EntityFramework.LazyLoadLoggingInterceptor.csproj", "{39A9B613-9FFB-46D6-8E70-148E1E266B2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jmm.EntityFramework.Tests", "jmm.EntityFramework.Tests\jmm.EntityFramework.Tests.csproj", "{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityFramework.LazyLoadLoggingInterceptor.Tests", "EntityFramework.LazyLoadLoggingInterceptor.Tests\EntityFramework.LazyLoadLoggingInterceptor.Tests.csproj", "{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

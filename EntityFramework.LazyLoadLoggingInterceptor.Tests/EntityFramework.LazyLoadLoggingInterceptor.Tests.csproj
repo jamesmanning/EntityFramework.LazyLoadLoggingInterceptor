@@ -83,7 +83,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\jmm.EntityFramework\jmm.EntityFramework.csproj">
+    <ProjectReference Include="..\EntityFramework.LazyLoadLoggingInterceptor\EntityFramework.LazyLoadLoggingInterceptor.csproj">
       <Project>{39A9B613-9FFB-46D6-8E70-148E1E266B2B}</Project>
       <Name>jmm.EntityFramework</Name>
     </ProjectReference>
