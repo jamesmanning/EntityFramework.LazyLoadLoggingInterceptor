@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace jmm.EntityFramework
+namespace EntityFramework.LazyLoadLoggingInterceptor
 {
     public class LazyLoadRuntimes : Dictionary<string, List<long>>
     {

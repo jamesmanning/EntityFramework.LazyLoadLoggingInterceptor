@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace jmm.EntityFramework
+namespace EntityFramework.LazyLoadLoggingInterceptor
 {
     public class LazyLoadLoggingInterceptor : DbCommandInterceptor, IDisposable
     {
@@ -41,7 +41,6 @@ namespace jmm.EntityFramework
             if (RegisteredInstance == null)
             {
                 RegisteredInstance = this;
-                DbInterception.Add(this);
                 RegisterAppDomainEvents();
                 Trace.TraceInformation($"Registered interceptor {nameof(LazyLoadLoggingInterceptor)}");
             }
@@ -52,7 +51,6 @@ namespace jmm.EntityFramework
             if (RegisteredInstance == this)
             {
                 RegisteredInstance = null;
-                DbInterception.Remove(this);
                 UnregisterAppDomainEvents();
                 _logTimer?.Dispose();
                 Trace.TraceInformation($"Unregistered interceptor {nameof(LazyLoadLoggingInterceptor)}");

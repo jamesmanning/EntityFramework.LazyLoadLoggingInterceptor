@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace jmm.EntityFramework.Tests
+namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
 {
     public class Invoice
     {

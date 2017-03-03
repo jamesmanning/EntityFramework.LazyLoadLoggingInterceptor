@@ -1,6 +1,6 @@
 ﻿using System.Data.Entity;
 
-namespace jmm.EntityFramework.Tests
+namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
 {
     public class CustomerDbContext : DbContext
     {

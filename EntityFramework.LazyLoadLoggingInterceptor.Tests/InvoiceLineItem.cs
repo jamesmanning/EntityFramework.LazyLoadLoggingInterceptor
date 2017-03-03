@@ -1,4 +1,4 @@
-﻿namespace jmm.EntityFramework.Tests
+﻿namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
 {
     public class InvoiceLineItem
     {

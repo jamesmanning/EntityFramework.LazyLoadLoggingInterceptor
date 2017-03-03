@@ -6,7 +6,7 @@ using System.Data.Entity.Infrastructure.Interception;
 using System.Linq;
 using NUnit.Framework;
 
-namespace jmm.EntityFramework.Tests
+namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
 {
     [TestFixture]
     public class LazyLoadLoggingInterceptorTests
@@ -65,17 +65,21 @@ namespace jmm.EntityFramework.Tests
                 db.SaveChanges();
             }
 
-            // start each test with no previous load runtimes
-            this.LazyLoadLoggingInterceptor.LazyLoadRuntimes.Clear();
+            // start each test with a fresh interceptor and register it
+            this.LazyLoadLoggingInterceptor = new LazyLoadLoggingInterceptor(0, false);
+            DbInterception.Add(this.LazyLoadLoggingInterceptor);
         }
 
         [TearDown]
         public void AfterEachTest()
         {
+            DbInterception.Remove(this.LazyLoadLoggingInterceptor);
             this.LazyLoadLoggingInterceptor.Dispose();
+            this.LazyLoadLoggingInterceptor = null;
         }
 
-        private LazyLoadLoggingInterceptor LazyLoadLoggingInterceptor => LazyLoadLoggingInterceptor.RegisteredInstance ?? new LazyLoadLoggingInterceptor(0, false);
+        //private LazyLoadLoggingInterceptor LazyLoadLoggingInterceptor => LazyLoadLoggingInterceptor.RegisteredInstance ?? new LazyLoadLoggingInterceptor(0, false);
+        private LazyLoadLoggingInterceptor LazyLoadLoggingInterceptor { get; set; }
 
         [Test]
         public void LazyLoadOfNavigationPropertyReferenceIsTracked()

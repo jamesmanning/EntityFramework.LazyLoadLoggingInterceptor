@@ -6,8 +6,8 @@
     <ProjectGuid>{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>jmm.EntityFramework.Tests</RootNamespace>
-    <AssemblyName>jmm.EntityFramework.Tests</AssemblyName>
+    <RootNamespace>EntityFramework.LazyLoadLoggingInterceptor.Tests</RootNamespace>
+    <AssemblyName>EntityFramework.LazyLoadLoggingInterceptor.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -85,7 +85,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EntityFramework.LazyLoadLoggingInterceptor\EntityFramework.LazyLoadLoggingInterceptor.csproj">
       <Project>{39A9B613-9FFB-46D6-8E70-148E1E266B2B}</Project>
-      <Name>jmm.EntityFramework</Name>
+      <Name>EntityFramework.LazyLoadLoggingInterceptor</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

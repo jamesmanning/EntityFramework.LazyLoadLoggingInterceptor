@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("jmm.EntityFramework")]
-[assembly: AssemblyDescription("see https://github.com/jamesmanning/jmm.EntityFramework")]
+[assembly: AssemblyTitle("EntityFramework.LazyLoadLoggingInterceptor")]
+[assembly: AssemblyDescription("see https://github.com/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("James Manning")]
-[assembly: AssemblyProduct("jmm.EntityFramework")]
+[assembly: AssemblyProduct("EntityFramework.LazyLoadLoggingInterceptor")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
