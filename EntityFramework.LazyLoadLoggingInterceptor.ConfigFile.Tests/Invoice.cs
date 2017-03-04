@@ -9,6 +9,5 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
 
         public int CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
-        public virtual ICollection<InvoiceLineItem> InvoiceLineItems { get; set; }
     }
 }

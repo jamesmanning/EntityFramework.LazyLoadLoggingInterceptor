@@ -64,7 +64,6 @@
     <Compile Include="Customer.cs" />
     <Compile Include="CustomerDbContext.cs" />
     <Compile Include="Invoice.cs" />
-    <Compile Include="InvoiceLineItem.cs" />
     <Compile Include="LazyLoadLoggingInterceptorConfigFileTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

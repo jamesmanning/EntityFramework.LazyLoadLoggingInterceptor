@@ -28,32 +28,14 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.ConfigFile.Tests
                     new Invoice()
                     {
                         Number = "SomeInvoiceNumber1",
-                        InvoiceLineItems = new List<InvoiceLineItem>()
-                        {
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem1-SomeInvoiceNumber1"},
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem2-SomeInvoiceNumber1"},
-                        }
                     },
                     new Invoice()
                     {
                         Number = "SomeInvoiceNumber2",
-                        InvoiceLineItems = new List<InvoiceLineItem>()
-                        {
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem1-SomeInvoiceNumber2"},
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem2-SomeInvoiceNumber2"},
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem3-SomeInvoiceNumber2"},
-                        }
                     },
                     new Invoice()
                     {
                         Number = "SomeInvoiceNumber3",
-                        InvoiceLineItems = new List<InvoiceLineItem>()
-                        {
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem1-SomeInvoiceNumber3"},
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem2-SomeInvoiceNumber3"},
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem3-SomeInvoiceNumber3"},
-                            new InvoiceLineItem() {Description = "SomeInvoiceLineItem4-SomeInvoiceNumber3"},
-                        }
                     },
                 },
             };
@@ -75,7 +57,7 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.ConfigFile.Tests
             Assert.IsNull(LazyLoadLoggingInterceptor.RegisteredInstance);
             using (var db = new CustomerDbContext())
             {
-                // we've opened a context, so there should be an instance registered now
+                // we've opened a context, so there should be an instance registered now due to the interceptor being defined in the config file
                 Assert.NotNull(LazyLoadLoggingInterceptor.RegisteredInstance);
                 CreateAndPopulateDatabase();
                 var invoices = db.Invoices.ToList();
