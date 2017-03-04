@@ -14,6 +14,9 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
         [SetUp]
         public void BeforeEachTest()
         {
+            Database.DefaultConnectionFactory = new SqlCeConnectionFactory("System.Data.SqlServerCe.4.0");
+            Database.SetInitializer(new DropCreateDatabaseAlways<CustomerDbContext>());
+
             using (var dataContext = new CustomerDbContext())
             {
                 if (dataContext.Database.Exists())
