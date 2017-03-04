@@ -14,9 +14,6 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
         [SetUp]
         public void BeforeEachTest()
         {
-            Database.DefaultConnectionFactory = new SqlCeConnectionFactory("System.Data.SqlServerCe.4.0");
-            Database.SetInitializer(new DropCreateDatabaseAlways<CustomerDbContext>());
-
             using (var dataContext = new CustomerDbContext())
             {
                 if (dataContext.Database.Exists())
@@ -76,12 +73,9 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
         [TearDown]
         public void AfterEachTest()
         {
-            if (this.LazyLoadLoggingInterceptor != null)
-            {
-                DbInterception.Remove(this.LazyLoadLoggingInterceptor);
-                this.LazyLoadLoggingInterceptor.Dispose();
-                this.LazyLoadLoggingInterceptor = null;
-            }
+            DbInterception.Remove(this.LazyLoadLoggingInterceptor);
+            this.LazyLoadLoggingInterceptor.Dispose();
+            this.LazyLoadLoggingInterceptor = null;
         }
 
         //private LazyLoadLoggingInterceptor LazyLoadLoggingInterceptor => LazyLoadLoggingInterceptor.RegisteredInstance ?? new LazyLoadLoggingInterceptor(0, false);

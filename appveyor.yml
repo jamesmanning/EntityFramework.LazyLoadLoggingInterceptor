@@ -3,5 +3,3 @@ before_build:
 - ps: nuget restore
 build:
   verbosity: minimal
-after_build:
-- dir
