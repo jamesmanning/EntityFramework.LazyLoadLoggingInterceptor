@@ -73,9 +73,12 @@ namespace EntityFramework.LazyLoadLoggingInterceptor.Tests
         [TearDown]
         public void AfterEachTest()
         {
-            DbInterception.Remove(this.LazyLoadLoggingInterceptor);
-            this.LazyLoadLoggingInterceptor.Dispose();
-            this.LazyLoadLoggingInterceptor = null;
+            if (this.LazyLoadLoggingInterceptor != null)
+            {
+                DbInterception.Remove(this.LazyLoadLoggingInterceptor);
+                this.LazyLoadLoggingInterceptor.Dispose();
+                this.LazyLoadLoggingInterceptor = null;
+            }
         }
 
         //private LazyLoadLoggingInterceptor LazyLoadLoggingInterceptor => LazyLoadLoggingInterceptor.RegisteredInstance ?? new LazyLoadLoggingInterceptor(0, false);
