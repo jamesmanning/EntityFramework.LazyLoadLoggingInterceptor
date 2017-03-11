@@ -2,6 +2,38 @@
 
 **TL;DR** This interceptor, which can be added via just a config change, will help identify places where your existing code is causing lazy loads to happen in Entity Framework so you can fix it, usually by add Include calls so you're doing 1 query instead of N+1 queries.
 
+To use it with its default settings of logging lazy-load statistics every 5 minutes, you can add this child element to the <entityFramework> element present in your app.config or web.config:
+
+    <interceptors>
+      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor">
+        <parameters>
+          <parameter value="0" type="System.Int32"/> <!--disable timer-based logging-->
+          <parameter value="false" type="System.Boolean"/> <!--disable at-lazy-load-time logging-->
+        </parameters>
+      </interceptor>
+    </interceptors>
+
+To change the frequency of logging the aggregate lazy-load data, pass in an integer constructor parameter.  It specifies the number of milliseconds the frequency of the logging will be.  If you specify zero or a negative number, the frequency-based logging will be disabled.
+
+    <interceptors>
+      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor">
+        <parameters>
+          <parameter value="86400000" type="System.Int32"/> <!-- change frequency-based logging to once a day instead of every 5 minutes-->
+        </parameters>
+      </interceptor>
+    </interceptors>
+
+To also have the interceptor log as each lazy load happens, add a second constructor parameter as a boolean to turn it on:
+
+    <interceptors>
+      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor">
+        <parameters>
+          <parameter value="86400000" type="System.Int32"/> <!-- change frequency-based logging to once a day instead of every 5 minutes-->
+          <parameter value="true" type="System.Boolean"/> <!--enable at-lazy-load-time logging-->
+        </parameters>
+      </interceptor>
+    </interceptors>
+
 ## Wait, what is lazy loading?
 
 Great question, glad you asked.  [Lazy loading](https://en.wikipedia.org/wiki/Lazy_loading) is a feature of Entity Framework and many other [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping)'s where one or more related entities (row(s) in another table, usually with a foreign-key relationship present) are loaded via another query being executed at the point where the entities are being accessed. It's a feature that defaults to being on in Entity Framework in particular, and sometimes the developers using EF may not realize the performance impact it might be having.
@@ -16,7 +48,7 @@ With lazy loading, though, it's often the case that code written without thinkin
 
 ## What are the alternatives to lazy loading?
 
-Since turning lazy loading off, especially on an existing codebase, can result in runtime breaks that didn't exist before, it's usually a bad idea to do so unless you have sufficient automated testing coverage to ensure any such places would be discovered as part of a CI build.
+Since turning lazy loading off, especially on an existing codebase, can result in runtime breaks that didn't exist before, it's usually a bad idea to do so unless you have sufficient automated testing coverage to ensure any such places would be discovered as part of a CI build or integration testing.
 
 In terms of API usage, there are 2 primary alternatives: [eager loading](https://msdn.microsoft.com/en-us/library/jj574232(v=vs.113).aspx#Anchor_0) and [explicit loading](https://msdn.microsoft.com/en-us/library/jj574232(v=vs.113).aspx#Anchor_2).
 
@@ -46,7 +78,7 @@ The interceptor can be configured by way of 2 optional constructor parameters.  
 
 The first optional constructor parameter is an integer of logFrequencyInMilliseconds.  If specified as 0 or negative, then there won't be any automatic logging done.  It defaults to logging every 5 minutes and will try to log any remaining/unlogged data at the point where the host process exits or the host appdomain unloads.  When it logs, it lists the total number of locations where lazy loads have happened from and total time, then lists each one of them with the number of times it happened and total and average time for each.
 
-As an example is this log that happens (if logging is enabled) during the unit tests:
+As an example is this log that happens (if logging is enabled) during [this unit test](https://github.com/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor/blob/4f7d83194d5364f1348dc03dfae632adb676a37b/EntityFramework.LazyLoadLoggingInterceptor.Tests/LazyLoadLoggingInterceptorTests.cs#L150-L189):
 
 ```
 Warning: 0 : 1 locations discovered performing 3 lazy loads for total of 0 ms
