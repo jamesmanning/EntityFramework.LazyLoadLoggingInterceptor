@@ -10,7 +10,7 @@ For more details about what EF6 provides for loading options, see [this MSDN pag
 
 ## Is lazy loading always bad?
 
-There are certainly causes where lazy loading is useful, and by providing it as a default part of the API, EF makes it much simpler for developers using EF to have things Just Work(tm) at runtime.  Without lazy loading, then many developers would often have code failing at runtime because the associated entities weren't specifically loaded so even though the associated row(s) are present in the database, the in-memory entities shows a null or empty collection instead.
+There are certainly cases where lazy loading is useful, and by providing it as a default part of the API, EF makes it much simpler for developers using EF to have things Just Work(tm) at runtime.  Without lazy loading, then many developers would often have code failing at runtime because the associated entities weren't specifically loaded so even though the associated row(s) are present in the database, the in-memory entities shows a null or empty collection instead.
 
 With lazy loading, though, it's often the case that code written without thinking about loading related entities will often result in [N+1 queries running against the database](http://stackoverflow.com/a/97253/215534) that the developer didn't intend.
 
