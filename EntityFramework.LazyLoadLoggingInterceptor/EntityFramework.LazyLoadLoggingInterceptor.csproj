@@ -55,6 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="content\app.config.install.xdt" />
+    <None Include="content\app.config.uninstall.xdt" />
+    <None Include="content\web.config.install.xdt" />
+    <None Include="content\web.config.uninstall.xdt" />
     <None Include="EntityFramework.LazyLoadLoggingInterceptor.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>

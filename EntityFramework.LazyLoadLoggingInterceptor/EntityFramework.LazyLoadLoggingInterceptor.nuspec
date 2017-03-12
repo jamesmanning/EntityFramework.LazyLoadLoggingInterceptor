@@ -11,4 +11,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
   </metadata>
+  <files>
+    <!-- dll is already included -->
+    <file src="bin\Debug\EntityFramework.LazyLoadLoggingInterceptor.pdb" target="lib\net45" />
+    <file src="content\*.*" target="content" />
+  </files>
 </package>

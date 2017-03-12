@@ -1,0 +1,15 @@
+﻿<?xml version="1.0"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+  <entityFramework>
+    <interceptors xdt:Transform="InsertIfMissing">
+      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor" xdt:Transform="InsertIfMissing">
+        <parameters>
+		  <!-- first optional constructor parameter sets the frequency of the statistics logging in milliseconds, 0 or negative disables it -->
+          <!-- <parameter value="86400000" type="System.Int32"/> -->
+		  <!-- second optional constructor parameter can enable logging the lazy loads as they happen -->
+          <!-- <parameter value="true" type="System.Boolean"/> -->
+        </parameters>
+      </interceptor>
+    </interceptors>
+  </entityFramework>
+</configuration>
