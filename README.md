@@ -1,4 +1,15 @@
-# EntityFramework.LazyLoadLoggingInterceptor
+EntityFramework.LazyLoadLoggingInterceptor
+==========================================
+
+[![AppVeyor](https://img.shields.io/appveyor/ci/jamesmanning/entityframework-lazyloadlogginginterceptor.svg)](https://ci.appveyor.com/project/jamesmanning/entityframework-lazyloadlogginginterceptor)
+[![Coveralls](https://img.shields.io/coveralls/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://coveralls.io/github/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor)
+
+[![GitHub issues](https://img.shields.io/github/issues/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://github.com/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor/issues)
+[![GitHub stars](https://img.shields.io/github/stars/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://github.com/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://github.com/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor/network)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jamesmanning/EntityFramework.LazyLoadLoggingInterceptor/master/LICENSE)
+
+[![NuGet](https://img.shields.io/nuget/v/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://www.nuget.org/packages/EntityFramework.LazyLoadLoggingInterceptor/)
 
 **TL;DR** This interceptor, which can be added via just a config change, will help identify places where your existing code is causing lazy loads to happen in Entity Framework so you can fix it, usually by add Include calls so you're doing 1 query instead of N+1 queries.
 
