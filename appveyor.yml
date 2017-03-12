@@ -7,13 +7,11 @@ build:
   verbosity: minimal
 test_script:
 - ps: >-
-    nuget install NUnit.Console
-    
     nuget install OpenCover
     
     nuget install coveralls.net
     
-    $nunit              = Resolve-Path ".\NUnit.ConsoleRunner.*\tools\nunit*console.exe" | Select -Expand Path
+    $nunit              = Get-Command nunit3-console | Select -Expand Source -First 1
     
     $opencover          = Resolve-Path ".\OpenCover.*\tools\OpenCover.Console.exe" | Select -Expand Path
     
@@ -23,6 +21,6 @@ test_script:
     
     $filters            = "+[EntityFramework.LazyLoadLoggingInterceptor*]*"
     
-    & $opencover "-register:user" "-target:$nunit" "-targetargs:$assemblies -noshadow -appveyor" "-filter:$filters" "-output:opencoverCoverage.xml"
+    & $opencover "-register:user" "-target:$nunit" "-targetargs:$assemblies" "-filter:$filters" "-output:opencoverCoverage.xml"
 
     & $coveralls --opencover -i opencoverCoverage.xml --repoToken $env:COVERALLS_REPO_TOKEN --commitId $env:APPVEYOR_REPO_COMMIT --commitBranch $env:APPVEYOR_REPO_BRANCH --commitAuthor $env:APPVEYOR_REPO_COMMIT_AUTHOR --commitEmail $env:APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL --commitMessage $env:APPVEYOR_REPO_COMMIT_MESSAGE --jobId $env:APPVEYOR_JOB_ID
