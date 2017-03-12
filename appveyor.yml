@@ -1,4 +1,6 @@
 version: 1.0.{build}
+skip_tags: true
+configuration: Debug
 before_build:
 - ps: nuget restore
 build:
@@ -11,13 +13,13 @@ test_script:
     
     nuget install coveralls.net
     
-    $nunit              = (Resolve-Path ".\NUnit.ConsoleRunner.*\tools\nunit*console.exe").ToString()
+    $nunit              = Resolve-Path ".\NUnit.ConsoleRunner.*\tools\nunit*console.exe" | Select -Expand Path
     
-    $opencover          = (Resolve-Path ".\OpenCover.*\tools\OpenCover.Console.exe").ToString()
+    $opencover          = Resolve-Path ".\OpenCover.*\tools\OpenCover.Console.exe" | Select -Expand Path
     
-    $coveralls          = (Resolve-Path ".\coveralls.net.*\tools\csmacnz.coveralls.exe").ToString()
+    $coveralls          = Resolve-Path ".\coveralls.net.*\tools\csmacnz.coveralls.exe" | Select -Expand Path
     
-    $assemblies         = (Resolve-Path ".\EntityFramework.LazyLoadLoggingInterceptor*Tests\bin\$env:CONFIGURATION\EntityFramework.LazyLoadLoggingInterceptor*Tests.dll").ToString()
+    $assemblies         = Resolve-Path ".\EntityFramework.LazyLoadLoggingInterceptor*Tests\bin\$env:CONFIGURATION\EntityFramework.LazyLoadLoggingInterceptor*Tests.dll" | Select -Expand Path
     
     $filters            = "+[EntityFramework.LazyLoadLoggingInterceptor*]*"
     
