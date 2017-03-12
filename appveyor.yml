@@ -17,7 +17,7 @@ test_script:
     
     $coveralls          = (Resolve-Path ".\coveralls.net.*\tools\csmacnz.coveralls.exe").ToString()
     
-    $assemblies         = (Resolve-Path "src\EntityFramework.LazyLoadLoggingInterceptor*Tests\bin\$env:CONFIGURATION\EntityFramework.LazyLoadLoggingInterceptor*Tests.dll").ToString()
+    $assemblies         = (Resolve-Path ".\EntityFramework.LazyLoadLoggingInterceptor*Tests\bin\$env:CONFIGURATION\EntityFramework.LazyLoadLoggingInterceptor*Tests.dll").ToString()
     
     $filters            = "+[EntityFramework.LazyLoadLoggingInterceptor*]*"
     
