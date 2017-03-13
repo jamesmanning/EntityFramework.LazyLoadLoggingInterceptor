@@ -142,9 +142,9 @@ Certainly this is a bit of a contrived example, but hopefully it serves the purp
 
 If we just run this as-is, it works fine. For me it runs in 10 seconds. 
 
-[first sshot here]
+![start of output](http://i.imgur.com/8XScrBi.png)
 
-[second sshot here]
+![end of output](http://i.imgur.com/KAjCrMv.png)
 
 Now, our code is working, we can move on to the next entry in our queue of work items.  Maybe it's later on that we need it to run faster or we notice it's making far more queries than we would have expected since we're only printing the information from a single customer.
 
@@ -152,7 +152,7 @@ With the NuGet package, it's meant so you can use it "out of the box" with sane 
 
 You can either use the 'Manage NuGet Packages' UI
 
-[third sshot here]
+![showing package in nuget UI](http://i.imgur.com/sRDM4Px.png)
 
 Or use the Package Manager Console and run `Install-Package EntityFramework.LazyLoadLoggingInterceptor`
 
