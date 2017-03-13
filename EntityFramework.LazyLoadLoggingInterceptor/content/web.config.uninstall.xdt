@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0"?>
 <configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
   <entityFramework>
-    <interceptors xdt:Transform="InsertIfMissing">
-      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor" xdt:Transform="Remove"  xdt:Locator="Match(type)">
-      </interceptor>
+    <interceptors>
+      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor" xdt:Transform="Remove"  xdt:Locator="Match(type)" />
     </interceptors>
   </entityFramework>
+  <system.diagnostics>
+    <sources>
+      <source name="EntityFramework.LazyLoadLoggingInterceptor" xdt:Transform="Remove" xdt:Locator="Match(name)" />
+    </sources>
+  </system.diagnostics>
 </configuration>

@@ -2,14 +2,27 @@
 <configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
   <entityFramework>
     <interceptors xdt:Transform="InsertIfMissing">
-      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor" xdt:Transform="InsertIfMissing">
+      <interceptor type="EntityFramework.LazyLoadLoggingInterceptor.LazyLoadLoggingInterceptor, EntityFramework.LazyLoadLoggingInterceptor" xdt:Transform="InsertIfMissing" xdt:Locator="Match(type)">
         <parameters>
-		  <!-- first optional constructor parameter sets the frequency of the statistics logging in milliseconds, 0 or negative disables it -->
+          <!-- first optional constructor parameter sets the frequency of the statistics logging in milliseconds, 0 or negative disables it -->
           <!-- <parameter value="86400000" type="System.Int32"/> -->
-		  <!-- second optional constructor parameter can enable logging the lazy loads as they happen -->
+          <!-- second optional constructor parameter can enable logging the lazy loads as they happen -->
           <!-- <parameter value="true" type="System.Boolean"/> -->
         </parameters>
       </interceptor>
     </interceptors>
   </entityFramework>
+  <system.diagnostics xdt:Transform="InsertIfMissing">
+    <sources xdt:Transform="InsertIfMissing">
+      <source name="EntityFramework.LazyLoadLoggingInterceptor" switchValue="All" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)">
+        <listeners>
+          <!-- a couple of trace listeners included so it Just Works by default -->
+          <add name="console" type="System.Diagnostics.ConsoleTraceListener" />
+          <add name="textwriterListener"
+            type="System.Diagnostics.TextWriterTraceListener"
+            initializeData="LazyLoadLog.txt" />
+        </listeners>
+      </source>
+    </sources>
+  </system.diagnostics>
 </configuration>

@@ -11,6 +11,7 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
 {
     public class LazyLoadLoggingInterceptor : DbCommandInterceptor, IDisposable
     {
+        private static readonly TraceSource _traceSource = new TraceSource("EntityFramework.LazyLoadLoggingInterceptor");
         private readonly Timer _logTimer;
         private readonly bool _logDuringLazyLoad;
 
@@ -42,7 +43,7 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
             {
                 RegisteredInstance = this;
                 RegisterAppDomainEvents();
-                Trace.TraceInformation($"Registered interceptor {nameof(LazyLoadLoggingInterceptor)}");
+                _traceSource.TraceInformation($"Registered interceptor {nameof(LazyLoadLoggingInterceptor)}");
             }
         }
 
@@ -53,7 +54,7 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
                 RegisteredInstance = null;
                 UnregisterAppDomainEvents();
                 _logTimer?.Dispose();
-                Trace.TraceInformation($"Unregistered interceptor {nameof(LazyLoadLoggingInterceptor)}");
+                _traceSource.TraceInformation($"Unregistered interceptor {nameof(LazyLoadLoggingInterceptor)}");
             }
         }
 
@@ -82,17 +83,13 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
             if (sortedByTotalTime.Any())
             {
                 var message = $"{sortedByTotalTime.Length} locations discovered performing {sortedByTotalTime.Select(x => x.Value.Count()).Sum()} lazy loads for total of {sortedByTotalTime.Select(x => x.Value.Sum()).Sum()} ms";
-                WriteMessage(message);
+                _traceSource.TraceInformation(message);
                 foreach (var entry in sortedByTotalTime)
                 {
-                    Trace.TraceWarning($"{entry.Key} - happened {entry.Value.Count} times for a total of {entry.Value.Sum()} ms with average of {(int)entry.Value.Average()} ms");
+                    _traceSource.TraceInformation($"{entry.Key} - happened {entry.Value.Count} times for a total of {entry.Value.Sum()} ms with average of {(int)entry.Value.Average()} ms");
                 }
+                _traceSource.Flush();
             }
-        }
-
-        private static void WriteMessage(string message)
-        {
-            Trace.TraceWarning(message);
         }
 
         private void AddStopwatchToContext(DbCommandInterceptionContext<DbDataReader> interceptionContext, string locationDescription)
@@ -150,7 +147,7 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
 
                 if (_logDuringLazyLoad)
                 {
-                    Trace.TraceWarning($"{inFlightStopwatch.LocationDescription} - took {inFlightStopwatch.Stopwatch.ElapsedMilliseconds} ms - total so far of {runtimesList.Count} times with {runtimesList.Sum()} ms for average of {runtimesList.Average()} ms");
+                    _traceSource.TraceInformation($"{inFlightStopwatch.LocationDescription} - took {inFlightStopwatch.Stopwatch.ElapsedMilliseconds} ms - total so far of {runtimesList.Count} times with {runtimesList.Sum()} ms for average of {runtimesList.Average()} ms");
                 }
             }
         }
