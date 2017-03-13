@@ -11,7 +11,9 @@ EntityFramework.LazyLoadLoggingInterceptor
 
 [![NuGet](https://img.shields.io/nuget/v/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://www.nuget.org/packages/EntityFramework.LazyLoadLoggingInterceptor/)
 
-**TL;DR** This interceptor, which can be added via just a config change, will help identify places where your existing code is causing lazy loads to happen in Entity Framework so you can fix it, usually by add Include calls so you're doing 1 query instead of N+1 queries.
+**TL;DR** This interceptor will help identify places where your existing code is causing lazy loads to happen in Entity Framework so you can fix it, usually by add Include calls so you're doing 1 query instead of N+1 queries.  The NuGet package will add this interceptor to your entityFramework element inside your app.config or web.config file for you, so after installing the package you can just check out the trace logging to see the lazy load statistics.
+
+### What if I want to modify the configuration
 
 To use it with its default settings of logging lazy-load statistics every 5 minutes, you can add this child element to the <entityFramework> element present in your app.config or web.config:
 
@@ -105,3 +107,80 @@ The second optional constructor parameter is a boolean of logDuringLazyLoad.  Th
 The expectation in using this is that you *could* have it enabled all the time, including in production. When it does the frequency-based logging, it intentionally clears all the data it has gathered so far so the interceptor isn't increasing your runtime memory usage over time.  The issue with *not* using it in production is that the access patterns and lazy loads that happen under customer load could be very different than what you see when doing testing yourself.  Production data from customer load is a much better set of numbers for driving potential performance changes, just like profiling-based optimization in general.
 
 If you can accurately simulate/replay customer workloads in testing, then keeping the interceptor only enabled during your staging/preproduction workload may be sufficient, it will just depend on your situation.
+
+## Can you show me an example of using this?
+
+That's a great idea.  We'll use the old but somewhat canonical Northwind database (customers, orders, products, etc) since that should be familiar enough as a data model for most.
+
+Let's say we decided to write this program to find the best customer and print out the info about their orders and items within the orders:
+
+```csharp
+static void Main(string[] args)
+{
+    using (var db = new Northwind())
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var bestCustomer = db.Customers
+            .OrderByDescending(customer => customer.Orders.Count)
+            .First();
+
+        Console.WriteLine($"Best customer is {bestCustomer.CompanyName}");
+        foreach (var customerOrder in bestCustomer.Orders)
+        {
+            Console.WriteLine($"\tPlaced order {customerOrder.OrderID} with {customerOrder.Order_Details.Count} line items on date {customerOrder.OrderDate:d}");
+            foreach (var orderDetail in customerOrder.Order_Details)
+            {
+                Console.WriteLine($"\t\t{orderDetail.Quantity} of {orderDetail.Product.ProductName} from category {orderDetail.Product.Category.CategoryName} at a cost of {orderDetail.UnitPrice:C} each");
+            }
+        }
+        Console.WriteLine($"Finished printing out info in {stopwatch.Elapsed}");
+    }
+}
+```
+
+Certainly this is a bit of a contrived example, but hopefully it serves the purpose.
+
+If we just run this as-is, it works fine. For me it runs in 10 seconds. 
+
+[first sshot here]
+
+[second sshot here]
+
+Now, our code is working, we can move on to the next entry in our queue of work items.  Maybe it's later on that we need it to run faster or we notice it's making far more queries than we would have expected since we're only printing the information from a single customer.
+
+With the NuGet package, it's meant so you can use it "out of the box" with sane defaults - it logs to both a file on disk and the console, along with the default trace viewer of course (so you can use [DebugView](https://technet.microsoft.com/en-us/sysinternals/debugview.aspx) or the like if you wanted).
+
+You can either use the 'Manage NuGet Packages' UI
+
+[third sshot here]
+
+Or use the Package Manager Console and run `Install-Package EntityFramework.LazyLoadLoggingInterceptor`
+
+With no other changes, just installing the nuget package (which modifies the config file for you to add the interceptor and trace source and listeners), I can run the same program again and now at the end it'll tell me about all those lazy loads that happened:
+
+```
+4 locations discovered performing 93 lazy loads for total of 5807 ms
+C:\github\Northwind.EF6\ConsoleApplication1\Program.cs(27,25): lazy load detected accessing navigation property Product from entity Order_Detail - happened 53 times for a total of 3332 ms with average of 62 ms
+C:\github\Northwind.EF6\ConsoleApplication1\Program.cs(24,21): lazy load detected accessing navigation property Order_Details from entity Order - happened 31 times for a total of 1848 ms with average of 59 ms
+C:\github\Northwind.EF6\ConsoleApplication1\Program.cs(27,25): lazy load detected accessing navigation property Category from entity Product - happened 8 times for a total of 492 ms with average of 61 ms
+C:\github\Northwind.EF6\ConsoleApplication1\Program.cs(22,47): lazy load detected accessing navigation property Orders from entity Customer - happened 1 times for a total of 135 ms with average of 135 ms
+```
+
+So we "felt" like we did a single query in looking up the customer, but as written, 93 more queries happened while we iterated under that customer's orders. Yikes.
+
+The default settings don't write a log entry every time a lazy load happens, but does include writing the statistics to the trace output like the above.
+
+Of note is that the source code locations in the output are in the format that Visual Studio supports for allowing you to double-click a link to take you to the relevant place in the source.  The numbers in the parentheses are the line number and column number.
+
+If we wanted to do an Include so all the needed entities were loading with the first query and no lazy loads would happen, we could just add this one Include call:
+
+```csharp
+var bestCustomer = db.Customers
+    .Include("Orders.Order_Details.Product.Category")
+    .OrderByDescending(customer => customer.Orders.Count)
+    .First();
+```
+
+And now we're back down to a single query hitting the database.
+
+However, how you choose to fix the lazy loads (eager loading, explicit loading, whatever) is up to you, but the interceptor has let you know about them so you can better understand your performance.  For the hopefully uncommon case of wanting to avoid eager loading, you can change to an explicit load.  That both makes it more obvious to future readers of the code what the runtime query behavior is and lets you continue to use the interceptor to identify the unintentional lazy loads happening in your code.
