@@ -13,7 +13,7 @@ EntityFramework.LazyLoadLoggingInterceptor
 
 **TL;DR** This interceptor will help identify places where your existing code is causing lazy loads to happen in Entity Framework so you can fix it, usually by add Include calls so you're doing 1 query instead of N+1 queries.  The NuGet package will add this interceptor to your entityFramework element inside your app.config or web.config file for you, so after installing the package you can just check out the trace logging to see the lazy load statistics.
 
-### What if I want to modify the configuration
+### What if I want to modify the configuration?
 
 To use it with its default settings of logging lazy-load statistics every 5 minutes, you can add this child element to the <entityFramework> element present in your app.config or web.config:
 
