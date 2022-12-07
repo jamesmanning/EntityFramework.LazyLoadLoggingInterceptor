@@ -94,14 +94,11 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
 
         private void AddStopwatchToContext(DbCommandInterceptionContext<DbDataReader> interceptionContext, string locationDescription)
         {
-            // this should move to using SetUserState/FindUserState in EF 6.2.x or later so multiple interceptors don't interfere with each other
-            // https://github.com/aspnet/EntityFramework6/commit/0d4e78a4371e3e1ff3f8838b90aadaa5e53dafb0
-            // this isn't available in 6.1.x so for now we're stuck with using UserState directly and just not using other interceptors at the same time.
-            interceptionContext.UserState = new InFlightInfo()
+            interceptionContext.SetUserState(nameof(LazyLoadLoggingInterceptor), new InFlightInfo()
             {
                 LocationDescription = locationDescription,
                 Stopwatch = Stopwatch.StartNew(),
-            };
+            });
         }
 
         private class InFlightInfo
@@ -137,8 +134,8 @@ namespace EntityFramework.LazyLoadLoggingInterceptor
         }
 
         public override void ReaderExecuted(DbCommand command, DbCommandInterceptionContext<DbDataReader> interceptionContext)
-        {
-            var inFlightStopwatch = interceptionContext.UserState as InFlightInfo;
+        {            
+            var inFlightStopwatch = interceptionContext.FindUserState(nameof(LazyLoadLoggingInterceptor)) as InFlightInfo;
 
             if (inFlightStopwatch != null)
             {
