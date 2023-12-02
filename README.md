@@ -11,6 +11,26 @@ EntityFramework.LazyLoadLoggingInterceptor
 
 [![NuGet](https://img.shields.io/nuget/v/EntityFramework.LazyLoadLoggingInterceptor.svg)](https://www.nuget.org/packages/EntityFramework.LazyLoadLoggingInterceptor/)
 
+# IMPORTANT
+
+This project is unnecessary if you're using Entity Framework Core versions 2.0 and above since it has the ability to let you [log or fail](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder.configurewarnings?view=efcore-7.0) your [lazy load](https://learn.microsoft.com/en-us/ef/core/querying/related-data/lazy#lazy-loading-with-proxies) operations. Just [configure warnings](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder.configurewarnings?view=efcore-7.0) and choose whether you want to .Log or .Throw for [the particular event(s)](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.diagnostics.coreeventid?view=efcore-7.0#fields), and in the case of .Log, you can use [the overload that allows you to specify the particular LogLevel](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.diagnostics.warningsconfigurationbuilder.log?view=efcore-7.0#microsoft-entityframeworkcore-diagnostics-warningsconfigurationbuilder-log(system-valuetuple((microsoft-extensions-logging-eventid-microsoft-extensions-logging-loglevel))())) if you wanted to log at a specific.
+
+An example if you're using [AddDbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.entityframeworkservicecollectionextensions.adddbcontext?view=efcore-7.0) to register your context with dependency injection (Microsoft.Extensions.DependencyInjection in particular) is below.  You'll want to change the Log/Throw behavior based on what you're looking for the behavior to be when those things happen, and you may also want to Log or Throw on other events besides lazy load as well.
+
+```csharp
+services.AddDbContext<YourContext>(options =>
+{
+    options
+        .UseLazyLoadingProxies()
+        .ConfigureWarnings(warnings => warnings
+            .Log(CoreEventId.NavigationLazyLoading)
+            .Throw(CoreEventId.LazyLoadOnDisposedContextWarning, CoreEventId.DetachedLazyLoadingWarning)
+        );
+});
+```
+
+***If you're continuing to read from here down, then the assumption is that you can't use EF Core 2.0 or above for some reason, since that is definitely the better option if at all possible.***
+
 **TL;DR** This interceptor will help identify places where your existing code is causing lazy loads to happen in Entity Framework so you can fix it, usually by add Include calls so you're doing 1 query instead of N+1 queries.  The NuGet package will add this interceptor to your entityFramework element inside your app.config or web.config file for you, so after installing the package you can just check out the trace logging to see the lazy load statistics.
 
 ### What if I want to modify the configuration?
